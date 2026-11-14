@@ -2,6 +2,9 @@
 package com.krakedev.patitas_rescate.services;
 
 import java.util.List;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 
 import org.springframework.stereotype.Service;
 
@@ -35,6 +38,7 @@ public class MascotaService {
             throw new IllegalArgumentException("La edad no puede ser negativa");
         }
 
+        mascota.setId(null);
         mascota.setNombre(mascota.getNombre().trim());
         mascota.setEspecie(mascota.getEspecie().trim());
         mascota.setEstado("DISPONIBLE");
@@ -42,7 +46,23 @@ public class MascotaService {
         return mascotaRepository.save(mascota);
     }
 
+    public List<Mascota> listarDisponibles() {
+        return mascotaRepository.findByEstado("DISPONIBLE");
+    }
+
+    @Transactional
+    public Mascota adoptar(Long id) {
+        Mascota mascota = mascotaRepository.buscarParaAdoptar(id).orElseThrow(() ->
+                new ResponseStatusException(HttpStatus.NOT_FOUND, "La mascota no existe"));
+        if (!"DISPONIBLE".equals(mascota.getEstado())) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "La mascota ya fue adoptada o no está disponible");
+        }
+        mascota.setEstado("ADOPTADA");
+        return mascotaRepository.save(mascota);
+    }
+
     public List<Mascota> listar() {
         return mascotaRepository.findAll();
     }
 }
+

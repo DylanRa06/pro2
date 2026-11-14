@@ -1,6 +1,7 @@
 package com.krakedev.patitas_rescate.controllers;
 
 import java.util.List;
+import org.springframework.security.access.prepost.PreAuthorize;
 import java.util.Map;
 
 import org.springframework.http.HttpStatus;
@@ -21,6 +22,7 @@ public class MascotaController {
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> registrar(@RequestBody Mascota mascota) {
 
         try {
@@ -36,9 +38,23 @@ public class MascotaController {
         }
     }
 
+    @GetMapping("/disponibles")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+    public ResponseEntity<List<Mascota>> disponibles() {
+        return ResponseEntity.ok(mascotaService.listarDisponibles());
+    }
+
+    @PutMapping("/{id}/adoptar")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Mascota> adoptar(@PathVariable Long id) {
+        return ResponseEntity.ok(mascotaService.adoptar(id));
+    }
+
     @GetMapping
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     public ResponseEntity<List<Mascota>> listar() {
 
         return ResponseEntity.ok(mascotaService.listar());
     }
 }
+

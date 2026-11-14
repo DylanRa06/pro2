@@ -1,6 +1,10 @@
 package com.krakedev.patitas_rescate.controllers;
 
 import java.util.Map;
+import org.springframework.security.core.Authentication;
+import jakarta.servlet.http.HttpServletRequest;
+import com.auth0.jwt.interfaces.DecodedJWT;
+import com.krakedev.patitas_rescate.services.TokenBlacklistService;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,10 +20,24 @@ public class AuthController {
 
     private final UsuarioService usuarioService;
     private final JwtUtil jwtUtil;
+    private final TokenBlacklistService blacklist;
 
-    public AuthController(UsuarioService usuarioService, JwtUtil jwtUtil) {
+    public AuthController(UsuarioService usuarioService, JwtUtil jwtUtil, TokenBlacklistService blacklist) {
         this.usuarioService = usuarioService;
         this.jwtUtil = jwtUtil;
+        this.blacklist = blacklist;
+    }
+
+    @GetMapping("/perfil")
+    public Map<String, String> perfil(Authentication auth) {
+        String rol = auth.getAuthorities().iterator().next().getAuthority().substring(5);
+        return Map.of("username", auth.getName(), "rol", rol);
+    }
+
+    @PostMapping("/logout")
+    public Map<String, String> logout(HttpServletRequest request) {
+        blacklist.revocar((DecodedJWT) request.getAttribute("jwtValidado"));
+        return Map.of("mensaje", "Sesión cerrada correctamente");
     }
 
     @PostMapping("/registrar")

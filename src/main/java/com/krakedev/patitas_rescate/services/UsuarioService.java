@@ -32,6 +32,11 @@ public class UsuarioService {
             throw new IllegalArgumentException("La contraseña es obligatoria");
         }
 
+        if (usuario.getUsername().trim().length() > 50
+                || usuario.getPassword().getBytes(java.nio.charset.StandardCharsets.UTF_8).length > 72) {
+            throw new IllegalArgumentException("Username máximo 50 caracteres y contraseña máximo 72 bytes");
+        }
+        usuario.setId(null);
         usuario.setUsername(usuario.getUsername().trim());
 
         if (usuarioRepository.existsByUsername(usuario.getUsername())) {
@@ -46,6 +51,9 @@ public class UsuarioService {
 
     public Usuario autenticar(String username, String password) {
 
+        if (password == null || password.getBytes(java.nio.charset.StandardCharsets.UTF_8).length > 72) {
+            throw new IllegalArgumentException("Credenciales incorrectas");
+        }
         Usuario usuario = usuarioRepository.findByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException("Credenciales incorrectas"));
 
